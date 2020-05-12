@@ -1,17 +1,11 @@
-const path = require('path');
-const root = path.resolve(__dirname, 'public');
-
 const htmlWebpackPlugin = require('html-webpack-plugin');
 const custom = config => {
     config.output = {
         publicPath: "./",
-        path: path.resolve(__dirname, './build'),
-        filename: '[name].[hash].js',
     };
     config.plugins.push(new htmlWebpackPlugin({
         scriptLoading: "defer",
         minify: true,
-        template: path.resolve(root, 'index.html'),
     }));
     return config
 };
