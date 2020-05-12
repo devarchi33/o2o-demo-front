@@ -16,3 +16,5 @@ npm-debug.log
 
 # directory
 .idea/
+build/
+dist/
