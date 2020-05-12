@@ -4,7 +4,9 @@ const srcRoot = path.resolve(__dirname, 'public');
 const htmlWebpackPlugin = require('html-webpack-plugin');
 const htmlWebpack = config => {
     config.plugins.push(new htmlWebpackPlugin({
-        publicPath: "/",
+        output: {
+            publicPath: "/"
+        },
         scriptLoading: "defer",
         minify: true,
         template: path.resolve(srcRoot, 'index.html'),
