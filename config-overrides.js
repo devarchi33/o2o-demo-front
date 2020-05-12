@@ -5,7 +5,9 @@ const htmlWebpackPlugin = require('html-webpack-plugin');
 const htmlWebpack = config => {
     config.plugins.push(new htmlWebpackPlugin({
         output: {
-            publicPath: "/"
+            publicPath: "/",
+            path: path.resolve(__dirname, './build'),
+            filename: '[name].[chunkhash].js',
         },
         scriptLoading: "defer",
         minify: true,
