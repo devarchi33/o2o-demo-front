@@ -1,23 +1,22 @@
 const path = require('path');
-const srcRoot = path.resolve(__dirname, 'public');
+const root = path.resolve(__dirname, 'public');
 
 const htmlWebpackPlugin = require('html-webpack-plugin');
-const htmlWebpack = config => {
+const custom = config => {
+    config.output = {
+        publicPath: "./",
+        path: path.resolve(__dirname, './build'),
+        filename: '[name].[hash].js',
+    };
     config.plugins.push(new htmlWebpackPlugin({
-        output: {
-            publicPath: "/",
-            path: path.resolve(__dirname, './build'),
-            filename: '[name].[chunkhash].js',
-        },
         scriptLoading: "defer",
         minify: true,
-        template: path.resolve(srcRoot, 'index.html'),
+        template: path.resolve(root, 'index.html'),
     }));
     return config
 };
 
 const { override, fixBabelImports, addLessLoader } = require('customize-cra');
-
 module.exports = override(
     fixBabelImports('antd', {
         libraryDirectory: 'es',
@@ -27,5 +26,5 @@ module.exports = override(
         javascriptEnabled: true,
         // modifyVars: { '@primary-color': '#25b864' },
     }),
-    htmlWebpack
+    custom
 );
