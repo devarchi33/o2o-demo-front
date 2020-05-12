@@ -1,3 +1,5 @@
+const path = require('path');
+const root = path.resolve(__dirname, 'public');
 const htmlWebpackPlugin = require('html-webpack-plugin');
 const custom = config => {
     config.output = {
@@ -6,6 +8,7 @@ const custom = config => {
     config.plugins.push(new htmlWebpackPlugin({
         scriptLoading: "defer",
         minify: true,
+        template: path.resolve(root, 'index.html'),
     }));
     return config
 };
