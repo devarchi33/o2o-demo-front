@@ -2,7 +2,7 @@ const ADDRESS = "http://localhost:8000";
 
 export default class API {
     static getJsonTypeHeader = () => {
-        const token = 'Bearer ' + '';
+        const token = 'Bearer ';
 
         return {
             'Authorization': `${token}`,
