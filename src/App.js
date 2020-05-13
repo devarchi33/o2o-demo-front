@@ -1,10 +1,11 @@
 import React from 'react';
-import { PageHeader, Input, Button, Row, Col, Form, Table, Card, Typography, Layout } from 'antd';
+import { PageHeader, Input, Button, Row, Col, Form, Table, Card, Typography, Layout, Select } from 'antd';
 import API from './API';
 
 const Content = Layout.Content;
 const FormItem = Form.Item;
 const Paragraph = Typography.Paragraph;
+const Option = Select.Option;
 
 const formItemLayout = {
   labelCol: {
@@ -17,6 +18,8 @@ const formItemLayout = {
   }
 };
 
+const STOCK_TYPES = ['online', 'province', 'district', 'area', 'store'];
+
 export default class O2ODemo extends React.Component {
   constructor(props) {
     super(props);
@@ -24,15 +27,16 @@ export default class O2ODemo extends React.Component {
       dataSource: [],
       safetyStockMinusFactor: 1,
       safetyStockPercentFactor: 77,
-      availableStockPercentFactor: 76
+      availableStockPercentFactor: 76,
+      stockType: STOCK_TYPES[0]
     }
   }
 
   handleSearch = () => {
-    this.setState({loading: true})
-    const {skuId} = this.state;
-    API.getStock(skuId).then(res => {
-      this.setState({loading: false})
+    this.setState({loading: true});
+    const {stockType, skuId, unit} = this.state;
+    API.getStock(stockType, skuId, unit).then(res => {
+      this.setState({loading: false});
       if (res.success === true && res.result !== null) {
         this.setState({ dataSource: res.result })
       }
@@ -46,7 +50,7 @@ export default class O2ODemo extends React.Component {
       method: "PUT",
       headers: API.getJsonTypeHeader(),
       body: JSON.stringify({
-        "stockType": "store",
+        "stockType": this.state.stockType,
         "minusFactor": parseInt(safetyStockMinusFactor),
         "percentFactor": parseFloat(safetyStockPercentFactor) / 100,
         "performBy": "donghoon.lee",
@@ -66,7 +70,7 @@ export default class O2ODemo extends React.Component {
       method: "PUT",
       headers: API.getJsonTypeHeader(),
       body: JSON.stringify({
-        "stockType": "store",
+        "stockType": this.state.stockType,
         "percentFactor": parseFloat(availableStockPercentFactor) / 100,
         "performBy": "donghoon.lee",
       })
@@ -88,23 +92,27 @@ export default class O2ODemo extends React.Component {
                 <Col span={12}>
                   <Card title="Form"  style={{height: 220}} bordered={false}>
                     <Form>
-                      <Col span={21}>
-                        <Col span={8}>
-                          <FormItem {...formItemLayout} label="MF">
-                            <Input placeholder="MinusFactor" value={this.state.safetyStockMinusFactor}
-                                   onChange={e => this.setState({ safetyStockMinusFactor: e.target.value })}/>
-                          </FormItem>
+                      <Row>
+                        <Col span={12}>
+                          <Row>
+                            <Col span={8}>
+                              <FormItem {...formItemLayout} label="MF">
+                                <Input placeholder="MinusFactor" value={this.state.safetyStockMinusFactor}
+                                       onChange={e => this.setState({ safetyStockMinusFactor: e.target.value })}/>
+                              </FormItem>
+                            </Col>
+                            <Col span={8}>
+                              <FormItem {...formItemLayout} label="PF">
+                                <Input placeholder="PercentFactor" value={this.state.safetyStockPercentFactor}
+                                       onChange={e => this.setState({ safetyStockPercentFactor: e.target.value })}/>
+                              </FormItem>
+                            </Col>
+                          </Row>
                         </Col>
-                        <Col span={8}>
-                          <FormItem {...formItemLayout} label="PF">
-                            <Input placeholder="PercentFactor" value={this.state.safetyStockPercentFactor}
-                                   onChange={e => this.setState({ safetyStockPercentFactor: e.target.value })}/>
-                          </FormItem>
+                        <Col span={3} style={{ paddingTop: 4, textAlign: "right" }}>
+                          <Button type="primary" onClick={this.renewSafetyStock} loading={this.state.loading}>Renew</Button>
                         </Col>
-                      </Col>
-                      <Col span={3} style={{ paddingTop: 4, textAlign: "right" }}>
-                        <Button type="primary" onClick={this.renewSafetyStock} loading={this.state.loading}>Renew</Button>
-                      </Col>
+                      </Row>
                     </Form>
                   </Card>
                 </Col>
@@ -127,17 +135,19 @@ export default class O2ODemo extends React.Component {
                 <Col span={12}>
                   <Card title="Form"  style={{height: 160}} bordered={false}>
                     <Form>
-                      <Col span={21}>
-                        <Col span={8}>
-                          <FormItem {...formItemLayout} label="PF">
-                            <Input placeholder="PercentFactor" value={this.state.availableStockPercentFactor}
-                                   onChange={e => this.setState({ availableStockPercentFactor: e.target.value })}/>
-                          </FormItem>
+                      <Row>
+                        <Col span={12}>
+                          <Col span={8}>
+                            <FormItem {...formItemLayout} label="PF">
+                              <Input placeholder="PercentFactor" value={this.state.availableStockPercentFactor}
+                                     onChange={e => this.setState({ availableStockPercentFactor: e.target.value })}/>
+                            </FormItem>
+                          </Col>
                         </Col>
-                      </Col>
-                      <Col span={3} style={{ paddingTop: 4, textAlign: "right" }}>
-                        <Button type="primary" onClick={this.renewAvailableStock} loading={this.state.loading}>Renew</Button>
-                      </Col>
+                        <Col span={3} style={{ paddingTop: 4, textAlign: "right" }}>
+                          <Button type="primary" onClick={this.renewAvailableStock} loading={this.state.loading}>Renew</Button>
+                        </Col>
+                      </Row>
                     </Form>
                   </Card>
                 </Col>
@@ -154,19 +164,41 @@ export default class O2ODemo extends React.Component {
             </Card>
             <Card title="Search" style={{marginTop: 5}}>
               <Row>
-                <Col span={12}>
+                <Col span={16}>
                   <Card title="Form" bordered={false}>
                     <Form>
-                      <Col span={21}>
-                        <Col span={8}>
-                          <FormItem {...formItemLayout} label="SkuId">
-                            <Input placeholder="SkuId" value={this.state.skuId} onChange={e => this.setState({ skuId: e.target.value })}/>
-                          </FormItem>
+                      <Row>
+                        <Col span={21}>
+                          <Row>
+                            <Col span={8}>
+                              <FormItem {...formItemLayout} label={"StockType"}>
+                                <Select
+                                    showSearch
+                                    filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+                                    onChange={(val) => { this.setState({ stockType: val }) }}
+                                >
+                                  {STOCK_TYPES.map((val, index) => {
+                                    return <Option key={index} value={val}>{val}</Option>
+                                  })}
+                                </Select>
+                              </FormItem>
+                            </Col>
+                            <Col span={8} style={{display: this.state.stockType === 'province' || this.state.stockType === 'district' || this.state.stockType === 'area' ? "block" : "none"}}>
+                              <FormItem {...formItemLayout} label="Unit">
+                                <Input placeholder="Unit" value={this.state.unit} onChange={e => this.setState({ unit: e.target.value })}/>
+                              </FormItem>
+                            </Col>
+                            <Col span={8}>
+                              <FormItem {...formItemLayout} label={"SkuId"}>
+                                <Input required placeholder="SkuId" value={this.state.skuId} onChange={e => this.setState({ skuId: e.target.value })}/>
+                              </FormItem>
+                            </Col>
+                          </Row>
                         </Col>
-                      </Col>
-                      <Col span={3} style={{ paddingTop: 4, textAlign: "right"}}>
-                        <Button type="primary" onClick={this.handleSearch} loading={this.state.loading}>Search</Button>
-                      </Col>
+                        <Col span={3} style={{ paddingTop: 4, textAlign: "right"}}>
+                          <Button type="primary" onClick={this.handleSearch} loading={this.state.loading}>Search</Button>
+                        </Col>
+                      </Row>
                     </Form>
                   </Card>
                 </Col>

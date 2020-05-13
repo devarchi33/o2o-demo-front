@@ -10,8 +10,18 @@ export default class API {
         };
     };
 
-    static getStock = (skuId) => {
-        return fetch(`${ADDRESS}/v1/stock?stockType=store&skuId=${skuId}`, {
+    static getStock = (stockType, skuId, unit) => {
+        let url = `${ADDRESS}/v1/stock?stockType=${stockType}&skuId=${skuId}`;
+        if (stockType === 'province') {
+            url += `&province=${unit}`
+        }
+        if (stockType === 'district') {
+            url += `&district=${unit}`
+        }
+        if (stockType === 'area') {
+            url += `&area=${unit}`
+        }
+        return fetch(url, {
             method: "GET",
             headers: API.getJsonTypeHeader()
         }).then(res => res.json());
