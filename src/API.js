@@ -10,8 +10,8 @@ export default class API {
         };
     };
 
-    static getStock = (stockType, skuId, unit) => {
-        let url = `${ADDRESS}/v1/stock?stockType=${stockType}&skuId=${skuId}`;
+    static getStocks = (stockType, skuIds, unit) => {
+        let url = `${ADDRESS}/v1/stock?stockType=${stockType}&skuIds=${skuIds}`;
         if (stockType === 'province') {
             url += `&province=${unit}`
         }

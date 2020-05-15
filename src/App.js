@@ -21,7 +21,7 @@ const formItemLayout = {
   }
 };
 
-const STOCK_TYPES = ['online', 'province', 'district', 'area', 'store'];
+const STOCK_TYPES = ['online', 'province', 'store'];
 
 export default class O2ODemo extends React.Component {
   constructor(props) {
@@ -37,8 +37,8 @@ export default class O2ODemo extends React.Component {
 
   handleSearch = () => {
     this.setState({loading: true});
-    const {stockType, skuId, unit} = this.state;
-    API.getStock(stockType, skuId, unit).then(res => {
+    const {stockType, skuIds, unit} = this.state;
+    API.getStocks(stockType, skuIds, unit).then(res => {
       this.setState({loading: false});
       if (res.success === true && res.result !== null) {
         this.setState({ dataSource: res.result })
@@ -85,8 +85,79 @@ export default class O2ODemo extends React.Component {
     });
   };
 
+  getColumns = (stockType) => {
+    const baseColumns = [
+      {
+        title: 'skuId',
+        dataIndex: 'skuId',
+        key: 'skuId',
+      },
+      {
+        title: 'safetyQty',
+        dataIndex: 'safetyQty',
+        key: 'safetyQty',
+      }
+    ];
+    switch (stockType) {
+      case "store":
+        return [
+          {
+            title: 'storeId',
+            dataIndex: 'storeId',
+            key: 'storeId',
+          },
+          {
+            title: 'skuId',
+            dataIndex: 'skuId',
+            key: 'skuId',
+          },
+          {
+            title: 'safetyQty',
+            dataIndex: 'safetyQty',
+            key: 'safetyQty',
+          }
+        ];
+      case "province":
+        return [
+          {
+            title: 'province',
+            dataIndex: 'province',
+            key: 'province'
+          },
+          {
+            title: 'skuId',
+            dataIndex: 'skuId',
+            key: 'skuId',
+          },
+          {
+            title: 'safetyQty',
+            dataIndex: 'safetyQty',
+            key: 'safetyQty',
+          }
+        ];
+      case "online":
+        return baseColumns;
+      default:
+        return baseColumns;
+    }
+  };
+
+  getRowKey = (stockType, row) => {
+    switch (stockType) {
+      case "store":
+        return row.storeId + row.skuId;
+      case "province":
+        return row.province + row.skuId;
+      case "online":
+        return row.skuId;
+      default:
+        return row.skuId;
+    }
+  };
+
   render() {
-    const {dataSource} = this.state;
+    const {dataSource, stockType} = this.state;
+    const columns = this.getColumns(stockType);
     return (
         <Layout>
           <Header className="header">
@@ -201,7 +272,7 @@ export default class O2ODemo extends React.Component {
                                     <Select
                                         showSearch
                                         filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
-                                        onChange={(val) => { this.setState({ stockType: val }) }}
+                                        onChange={(val) => { this.setState({ stockType: val }, () => this.setState({dataSource: [], skuIds: ''})) }}
                                     >
                                       {STOCK_TYPES.map((val, index) => {
                                         return <Option key={index} value={val}>{val}</Option>
@@ -215,8 +286,8 @@ export default class O2ODemo extends React.Component {
                                   </FormItem>
                                 </Col>
                                 <Col span={8}>
-                                  <FormItem {...formItemLayout} label={"SkuId"}>
-                                    <Input required placeholder="SkuId" value={this.state.skuId} onChange={e => this.setState({ skuId: e.target.value })}/>
+                                  <FormItem {...formItemLayout} label={"SkuIds"}>
+                                    <Input required placeholder="SkuIds" value={this.state.skuIds} onChange={e => this.setState({ skuIds: e.target.value })}/>
                                   </FormItem>
                                 </Col>
                               </Row>
@@ -235,25 +306,9 @@ export default class O2ODemo extends React.Component {
                             <Card bordered={false} title="OriginalStock">
                               <Table
                                   dataSource={dataSource}
-                                  rowKey={row => row.storeId + row.skuId}
+                                  rowKey={row => this.getRowKey(stockType, row)}
                                   pagination={{ pageSize: 10 }}
-                                  columns={[
-                                    {
-                                      title: 'storeId',
-                                      dataIndex: 'storeId',
-                                      key: 'storeId',
-                                    },
-                                    {
-                                      title: 'skuId',
-                                      dataIndex: 'skuId',
-                                      key: 'skuId',
-                                    },
-                                    {
-                                      title: 'qty',
-                                      dataIndex: 'qty',
-                                      key: 'qty',
-                                    },
-                                  ]}
+                                  columns={columns}
                               />
                             </Card>
                           </Col>
@@ -261,25 +316,9 @@ export default class O2ODemo extends React.Component {
                             <Card bordered={false} title="SafetyStock">
                               <Table
                                   dataSource={dataSource}
-                                  rowKey={row => row.storeId + row.skuId}
+                                  rowKey={row => this.getRowKey(stockType, row)}
                                   pagination={{ pageSize: 10 }}
-                                  columns={[
-                                    {
-                                      title: 'storeId',
-                                      dataIndex: 'storeId',
-                                      key: 'storeId',
-                                    },
-                                    {
-                                      title: 'skuId',
-                                      dataIndex: 'skuId',
-                                      key: 'skuId',
-                                    },
-                                    {
-                                      title: 'safetyQty',
-                                      dataIndex: 'safetyQty',
-                                      key: 'safetyQty',
-                                    },
-                                  ]}
+                                  columns={columns}
                               />
                             </Card>
                           </Col>
@@ -287,25 +326,9 @@ export default class O2ODemo extends React.Component {
                             <Card bordered={false} title="AvailableStock">
                               <Table
                                   dataSource={dataSource}
-                                  rowKey={row => row.storeId + row.skuId}
+                                  rowKey={row => this.getRowKey(stockType, row)}
                                   pagination={{ pageSize: 10 }}
-                                  columns={[
-                                    {
-                                      title: 'storeId',
-                                      dataIndex: 'storeId',
-                                      key: 'storeId',
-                                    },
-                                    {
-                                      title: 'skuId',
-                                      dataIndex: 'skuId',
-                                      key: 'skuId',
-                                    },
-                                    {
-                                      title: 'availableQty',
-                                      dataIndex: 'availableQty',
-                                      key: 'availableQty',
-                                    },
-                                  ]}
+                                  columns={columns}
                               />
                             </Card>
                           </Col>
